@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPulse Pro Elite // Multi-Subject Next-Gen ERP</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* --- CONFIGURABLE VARIABLE SYSTEM --- */
+        :root[data-theme="dark"] {
+            --bg-env: #030712;
+            --glass-surface: rgba(17, 24, 39, 0.7);
+            --glass-card: rgba(31, 41, 55, 0.45);
+            --border-ray: rgba(56, 189, 248, 0.15);
+            --text-lead: #f9fafb;
+            --text-sub: #9ca3af;
+            --primary: #38bdf8;
+            --secondary: #6366f1;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --sidebar-w: 280px;
+            --blur-radius: 16px;
+        }
+
+        :root[data-theme="light"] {
+            --bg-env: #f3f4f6;
+            --glass-surface: rgba(255, 255, 255, 0.85);
+            --glass-card: rgba(243, 244, 246, 0.9);
+            --border-ray: rgba(14, 165, 233, 0.2);
+            --text-lead: #111827;
+            --text-sub: #6b7280;
+            --primary: #0284c7;
+            --secondary: #4f46e5;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --sidebar-w: 280px;
+            --blur-radius: 12px;
+        }
+
+        /* --- BASIC RESET & ANIMATIONS --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.25s, border-color 0.25s; }
+        body { background: var(--bg-env); color: var(--text-lead); min-height: 100vh; overflow-x: hidden; }
+        
+        @keyframes viewSlide {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- AUTHENTICATION POPUP OVERLAY --- */
+        #auth-gate { position: fixed; inset: 0; background: radial-gradient(circle at center, #111827, #030712); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3rem; border-radius: 24px; width: 100%; max-width: 440px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); }
+        .auth-logo { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: #38bdf8; letter-spacing: 2px; margin-bottom: 2rem; }
+        .auth-input-group { position: relative; margin-bottom: 1.25rem; }
+        .auth-input-group i { position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--text-sub); }
+        .auth-input-group input { width: 100%; padding: 0.8rem 1rem 0.8rem 3rem; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; outline: none; }
+        .auth-btn { width: 100%; padding: 0.8rem; background: linear-gradient(135deg, #38bdf8, #6366f1); border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; margin-top: 1rem; }
+
+        /* --- PERSISTENT SIDEBAR APP GRID SYSTEM --- */
+        #core-app-wrapper { display: flex; opacity: 0; transition: opacity 0.4s ease; }
+        
+        aside {
+            width: var(--sidebar-w);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--glass-surface);
+            backdrop-filter: blur(var(--blur-radius));
+            border-right: 1px solid var(--border-ray);
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 999;
+        }
+
+        .sys-brand { font-family: 'Orbitron', sans-serif; font-size: 1.35rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
+        .nav-scroller { overflow-y: auto; flex-grow: 1; margin-right: -0.5rem; padding-right: 0.5rem; }
+        .nav-scroller::-webkit-scrollbar { width: 4px; }
+        .nav-scroller::-webkit-scrollbar-thumb { background: var(--border-ray); border-radius: 4px; }
+        
+        .section-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-sub); letter-spacing: 1px; margin: 1.25rem 0 0.5rem 0.5rem; }
+        .menu-link { display: flex; align-items: center; gap: 1rem; padding: 0.65rem 1rem; border-radius: 12px; cursor: pointer; color: var(--text-sub); font-weight: 500; text-decoration: none; margin-bottom: 0.25rem; }
+        .menu-link:hover, .menu-link.active { background: var(--glass-card); color: var(--primary); border-left: 4px solid var(--primary); }
+
+        main { margin-left: var(--sidebar-w); width: calc(100% - var(--sidebar-w)); padding: 2rem; min-height: 100vh; }
+        
+        /* --- GLASS INTERFACE STRUCTURE --- */
+        header { background: var(--glass-surface); backdrop-filter: blur(var(--blur-radius)); border: 1px solid var(--border-ray); border-radius: 20px; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header-meta-clock { font-family: 'Orbitron', sans-serif; color: var(--primary); font-weight: 600; }
+        
+        .view-panel { display: none; animation: viewSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .view-panel.active { display: block; }
+
+        /* --- VISUAL INTERACTIVE OBJECTS & GRID SCALES --- */
+        .analytics-block-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .analytic-pill-card { background: var(--glass-surface); border: 1px solid var(--border-ray); border-radius: 20px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
+        .analytic-pill-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+
+        .split-dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        .canvas-card, .info-panel-card { background: var(--glass-surface); border: 1px solid var(--border-ray); border-radius: 24px; padding: 2rem; position: relative; }
+        
+        .subject-card-matrix { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .dynamic-sub-card { border-radius: 20px; padding: 1.5rem; background: var(--glass-surface); border: 1px solid var(--border-ray); cursor: pointer; position: relative; overflow: hidden; transform: translateY(0); transition: transform 0.3s, box-shadow 0.3s; }
+        .dynamic-sub-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.5); }
+        .dynamic-sub-card::after { content: ''; position: absolute; right: -20px; bottom: -20px; font-size: 7rem; opacity: 0.04; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+        
+        /* --- TABLES MATRIX DESIGN SYSTEM --- */
+        .table-wrap-box { background: var(--glass-surface); border: 1px solid var(--border-ray); border-radius: 24px; overflow-x: auto; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: rgba(0,0,0,0.2); padding: 1.1rem 1.25rem; color: var(--primary); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid var(--border-ray); }
+        td { padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border-ray); font-size: 0.9rem; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .flex-input-pill { background: rgba(0,0,0,0.15); border: 1px solid var(--border-ray); padding: 0.4rem 0.6rem; border-radius: 8px; color: var(--text-lead); text-align: center; width: 65px; outline: none; font-weight: 600; }
+        .flex-input-pill:focus { border-color: var(--primary); background: rgba(0,0,0,0.3); }
+        
+        .progress-rail { background: rgba(0,0,0,0.2); border-radius: 10px; height: 8px; width: 80px; display: inline-block; vertical-align: middle; overflow: hidden; margin-right: 0.5rem; }
+        .progress-track-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--success)); border-radius: 10px; }
+        
+        .status-badge { padding: 0.3rem 0.75rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge-pass { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-fail { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+
+        /* --- CONTROL INFRASTRUCTURE ACTIONS --- */
+        .ui-dropdown, .ui-btn, .ui-text-input { padding: 0.65rem 1.25rem; border-radius: 12px; background: var(--glass-card); border: 1px solid var(--border-ray); color: var(--text-lead); outline: none; font-weight: 500; }
+        .ui-btn { cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; color: white; }
+        .ui-btn-accent { background: var(--glass-card); border: 1px solid var(--border-ray); }
+        .ui-btn-accent:hover { background: var(--border-ray); }
+
+        .subject-hero-banner { display: flex; align-items: center; gap: 2rem; padding: 2rem; background: var(--glass-surface); border: 1px solid var(--border-ray); border-radius: 24px; margin-bottom: 2rem; position: relative; }
+        .subject-hero-icon { width: 70px; height: 70px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white; }
+
+        @media (max-width: 1200px) {
+            .split-dashboard-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-gate">
+        <div class="auth-card">
+            <div class="auth-logo"><i class="fa-solid fa-shield-halved"></i> EDUPULSE PRO</div>
+            <p style="color: var(--text-sub); margin-bottom: 2rem; font-size: 0.85rem;">ENTER INTERFACE AUTHORIZATION TOKENS</p>
+            <div class="auth-input-group"><i class="fa fa-user"></i><input type="text" id="sec-user" value="admin"></div>
+            <div class="auth-input-group"><i class="fa fa-lock"></i><input type="password" id="sec-pass" value="admin"></div>
+            <button class="auth-btn" onclick="appController.authenticateAccess()">OPEN SYSTEM CHANNELS</button>
+        </div>
+    </div>
+
+    <div id="core-app-wrapper">
+        <aside>
+            <div class="sys-brand"><i class="fa-solid fa-terminal"></i><span>PULSE ELITE</span></div>
+            <div class="nav-scroller">
+                <div class="section-lbl">Main Hub</div>
+                <a href="#" class="menu-link active" id="lnk-ov" onclick="appController.routePanel('overview')"><i class="fa fa-chart-line"></i><span>Overview Matrix</span></a>
+                <a href="#" class="menu-link" id="lnk-db" onclick="appController.routePanel('database')"><i class="fa fa-user-graduate"></i><span>Student Core</span></a>
+                
+                <div class="section-lbl">Subject Branches</div>
+                <div id="sidebar-subject-links"></div>
+            </div>
+            <div style="margin-top: auto; padding-top: 1rem;">
+                <button class="ui-btn ui-btn-accent" style="width: 100%; justify-content: center;" onclick="window.location.reload()"><i class="fa fa-lock"></i>Lock Console</button>
+            </div>
+        </aside>
+
+        <main>
+            <header>
+                <div>
+                    <h1 style="font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px;" id="header-context-title">Administrative Dashboard Overview</h1>
+                    <p style="font-size: 0.8rem; color: var(--text-sub);" id="header-context-desc">Realtime institutional data modeling array stream.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div class="header-meta-clock" id="live-system-clock">00:00:00 UTC</div>
+                    <button class="ui-text-input" style="padding: 0.5rem;" onclick="appController.invertTheme()"><i class="fa fa-circle-half-stroke"></i></button>
+                </div>
+            </header>
+
+            <div id="view-overview" class="view-panel active">
+                <div class="analytics-block-grid">
+                    <div class="analytic-pill-card"><div><p style="font-size: 0.8rem; color:var(--text-sub); font-weight:700;">TOTAL MEMBERS</p><h2 style="font-size: 2rem;" id="stat-total-students">0</h2></div><i class="fa fa-users" style="color: var(--primary); font-size: 1.5rem;"></i></div>
+                    <div class="analytic-pill-card"><div><p style="font-size: 0.8rem; color:var(--text-sub); font-weight:700;">INSTITUTION MEAN GPA</p><h2 style="font-size: 2rem;" id="stat-mean-gpa">0.00</h2></div><i class="fa fa-graduation-cap" style="color: var(--success); font-size: 1.5rem;"></i></div>
+                    <div class="analytic-pill-card"><div><p style="font-size: 0.8rem; color:var(--text-sub); font-weight:700;">ATTENDANCE STABILITY</p><h2 style="font-size: 2rem;" id="stat-mean-att">0%</h2></div><i class="fa fa-calendar-check" style="color: var(--warning); font-size: 1.5rem;"></i></div>
+                </div>
+
+                <div class="split-dashboard-grid">
+                    <div class="canvas-card">
+                        <h3>Comparative Multi-Subject Metrics Evaluation</h3>
+                        <div style="height: 320px; position: relative; margin-top: 1rem;"><canvas id="chart-overall-comparison"></canvas></div>
+                    </div>
+                    <div class="info-panel-card" style="display:flex; flex-direction:column; justify-content:space-between;">
+                        <div>
+                            <h3>Academic Projections</h3>
+                            <p style="font-size:0.85rem; color:var(--text-sub); margin-top:0.5rem; line-height:1.5;">Adaptive metrics calculate high stability indicators inside active subject nodes.</p>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.15); border: 1px solid var(--border-ray); padding: 1.25rem; border-radius: 16px;">
+                            <h4 style="font-size:0.85rem; margin-bottom:0.5rem; color:var(--primary);">System Health Summary</h4>
+                            <p style="font-size:0.8rem; color:var(--text-sub);">All databases cached and local operational parameters syncing within expectations.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 1rem;">Core Program Subject Matrices</h3>
+                <div class="subject-card-matrix" id="dashboard-subject-cards-grid"></div>
+            </div>
+
+            <div id="view-database" class="view-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap:1rem; flex-wrap: wrap;">
+                    <input type="text" id="table-search-input" class="ui-text-input" placeholder="Query name or identifier index..." style="width: 320px;" oninput="appController.runTableSearch(this.value)">
+                    <button class="ui-btn" onclick="appController.resetDatabaseMapping()"><i class="fa fa-rotate"></i> Reset Baseline Array</button>
+                </div>
+
+                <div class="table-wrap-box">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Identity Core</th>
+                                <th>Math</th>
+                                <th>Phys</th>
+                                <th>Chem</th>
+                                <th>Biol</th>
+                                <th>CS</th>
+                                <th>Engl</th>
+                                <th>Total</th>
+                                <th>Mean %</th>
+                                <th>GPA</th>
+                                <th>Final Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="master-student-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-subject-isolate" class="view-panel">
+                <div class="subject-hero-banner" id="sub-hero-container">
+                    <div class="subject-hero-icon" id="sub-hero-icon-box"><i class="fa fa-book"></i></div>
+                    <div>
+                        <h2 id="sub-hero-title" style="font-size: 1.75rem;">Subject Name Block</h2>
+                        <p style="color: var(--text-sub); font-size: 0.9rem;" id="sub-hero-instructor">Lead Faculty Officer: N/A</p>
+                    </div>
+                    <button class="ui-btn" style="position: absolute; right: 2rem; top: 2rem;" onclick="appController.printActiveSubjectReport()"><i class="fa fa-file-pdf"></i> Download Report Card</button>
+                </div>
+
+                <div class="analytics-block-grid">
+                    <div class="analytic-pill-card"><div><p style="font-size: 0.75rem; color:var(--text-sub);">ATTENDANCE RUN-RATE</p><h3 style="font-size: 1.6rem;" id="sub-metric-att">0%</h3></div></div>
+                    <div class="analytic-pill-card"><div><p style="font-size: 0.75rem; color:var(--text-sub);">CLASS MEAN SCORE</p><h3 style="font-size: 1.6rem;" id="sub-metric-marks">0%</h3></div></div>
+                    <div class="analytic-pill-card"><div><p style="font-size: 0.75rem; color:var(--text-sub);">PASS / FAIL EVALUATION</p><h3 style="font-size: 1.4rem;" id="sub-metric-passfail">0 / 0</h3></div></div>
+                    <div class="analytic-pill-card"><div><p style="font-size: 0.75rem; color:var(--text-sub);">AI PREDICTIVE VECTOR</p><h3 style="font-size: 1.4rem; color:var(--success);" id="sub-metric-predict">Stable</h3></div></div>
+                </div>
+
+                <div class="split-dashboard-grid">
+                    <div class="canvas-card">
+                        <h3>Subject Velocity & Progress Metrics Tracking</h3>
+                        <div style="height: 280px; position: relative; margin-top: 1rem;"><canvas id="chart-subject-isolated"></canvas></div>
+                    </div>
+                    <div class="info-panel-card" style="overflow-y:auto; max-height:360px;">
+                        <h3 style="margin-bottom:1rem; font-size:1.1rem;"><i class="fa fa-crown" style="color: var(--warning);"></i> Subject Toppers Array</h3>
+                        <div id="sub-toppers-list-box" style="display:flex; flex-direction:column; gap:0.75rem;"></div>
+                    </div>
+                </div>
+
+                <div class="split-dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="info-panel-card">
+                        <h3 style="margin-bottom:1rem; font-size:1.1rem;"><i class="fa fa-scroll" style="color: var(--primary);"></i> Active Assignments Feed</h3>
+                        <div id="sub-homework-container" style="display:flex; flex-direction:column; gap:0.75rem;"></div>
+                    </div>
+                    <div class="info-panel-card">
+                        <h3 style="margin-bottom:1rem; font-size:1.1rem;"><i class="fa fa-folder-open" style="color: var(--warning);"></i> Repository Resources & Syllabus Elements</h3>
+                        <div id="sub-resources-container" style="display:flex; flex-direction:column; gap:0.75rem;"></div>
+                    </div>
+                </div>
+
+                <div class="canvas-card" style="margin-bottom:2rem;">
+                    <h3 style="margin-bottom:1rem;">Subject Registry Modification Matrix</h3>
+                    <div class="table-wrap-box" style="margin-bottom:0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student Architecture Profile</th>
+                                    <th>Registered Scores (0-100)</th>
+                                    <th>Attendance Metric (%)</th>
+                                    <th>Administrative Remarks / Assessment Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subject-isolated-editor-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // CONFIG MASTER FOR SYSTEMATIC SUBJECT ARCHITECTURE MODEL
+        const INST_SUBJECTS_CONFIG = {
+            math: { name: "Mathematics", icon: "fa-calculator", color: "#38bdf8", teacher: "Dr. Evelyn Vance", resources: ["Advanced Calculus PDF", "Topology Problem Set III"], homework: [{title:"Fourier Analytics Mapping", due:"In 2 Days"}, {title:"Complex Tensor Transformation Matrix", due:"In 6 Days"}] },
+            phys: { name: "Physics", icon: "fa-atom", color: "#34d399", teacher: "Prof. Marcus Sterling", resources: ["Quantum Mechanics Foundations Lecture", "Electrodynamics Lab Handbook"], homework: [{title:"Relativistic Mechanics Equations", due:"In 4 Days"}] },
+            chem: { name: "Chemistry", icon: "fa-flask-vial", color: "#fbbf24", teacher: "Dr. Aris Thorne", resources: ["Organic Synthesis Blueprints", "Thermodynamics Index V2"], homework: [{title:"Aromatic Ring Polymerization Lab Report", due:"Tomorrow"}] },
+            biol: { name: "Biology", icon: "fa-dna", color: "#f87171", teacher: "Prof. Sarah Jenkins", resources: ["Genomic Sequencing Methods", "Cellular Mitosis Video Resource"], homework: [{title:"CRISPR-Cas9 Editing Sequence Log", due:"In 5 Days"}] },
+            cs:   { name: "Computer Science", icon: "fa-code", color: "#a855f7", teacher: "Dr. Alan Turing-Bey", resources: ["Distributed Caching Cluster Specs", "Asynchronous Kernel Design"], homework: [{title:"Build Reactive Engine Interface Structure", due:"In 3 Days"}] },
+            engl: { name: "English Literature", icon: "fa-book-open", color: "#ec4899", teacher: "Lady Clara Sterling", resources: ["Anthology of Post-Modern Prose", "Shakespearian Critical Essays"], homework: [{title:"Comparative Literary Discourse Essay", due:"In 1 Week"}] },
+            hist: { name: "History", icon: "fa-timeline", color: "#f97316", teacher: "Prof. Howard Zinn", resources: ["Industrial Revolution Primary Source Ledger", "Treaty Global Map Archives"], homework: [{title:"Cold War Geopolitical Analysis Synthesis", due:"In 4 Days"}] },
+            geog: { name: "Geography", icon: "fa-earth-americas", color: "#14b8a6", teacher: "Dr. Diana Magellan", resources: ["Tectonic Activity Satellite Mapping", "GIS Spatial Density Modeling Core"], homework: [{title:"Urban Demographics Growth Vector Map", due:"In 2 Days"}] },
+            arab: { name: "Arabic", icon: "fa-language", color: "#06b6d4", teacher: "Sheikh Hamdan Al-Mansoori", resources: ["Classical Rhetoric Syntax Portfolio", "Modern Prose Dialectic Audios"], homework: [{title:"Poetic Verse Structural Interpretation", due:"In 3 Days"}] },
+            maly: { name: "Malayalam", icon: "fa-feather-pointed", color: "#84cc16", teacher: "Prof. K. Madhavan", resources: ["Kerala Literary Heritage Archive", "Phonology System Guide"], homework: [{title:"Native Linguistic Synthesis Portfolio Review", due:"In 5 Days"}] }
+        };
+
+        class EduPulseSystemEngine {
+            constructor() {
+                this.students = [];
+                this.activePanelId = 'overview';
+                this.activeSubjectKey = 'math';
+                this.globalOverallChart = null;
+                this.subjectIsolatedChart = null;
+            }
+
+            bootEngine() {
+                this.initializeLiveClock();
+                this.buildSidebarUINodes();
+                
+                if (!localStorage.getItem('EDUPULSE_ELITE_DATASTORE')) {
+                    this.executeBaselineArraySeeding();
+                } else {
+                    this.students = JSON.parse(localStorage.getItem('EDUPULSE_ELITE_DATASTORE'));
+                }
+
+                this.evaluateSystemMetrics();
+                this.renderMasterOverviewMetrics();
+                this.renderMasterTableRows(this.students);
+            }
+
+            initializeLiveClock() {
+                setInterval(() => {
+                    document.getElementById('live-system-clock').innerText = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+                }, 1000);
+            }
+
+            authenticateAccess() {
+                const user = document.getElementById('sec-user').value;
+                const pass = document.getElementById('sec-pass').value;
+                if (user === 'admin' && pass === 'admin') {
+                    document.getElementById('auth-gate').style.display = 'none';
+                    document.getElementById('core-app-wrapper').style.opacity = '1';
+                    this.bootEngine();
+                } else {
+                    alert('Invalid Interface Authorization Tokens.');
+                }
+            }
+
+            buildSidebarUINodes() {
+                const targetBox = document.getElementById('sidebar-subject-links');
+                targetBox.innerHTML = Object.keys(INST_SUBJECTS_CONFIG).map(key => `
+                    <a href="#" class="menu-link" id="lnk-sub-${key}" onclick="appController.routePanel('subject','${key}')">
+                        <i class="fa ${INST_SUBJECTS_CONFIG[key].icon}"></i><span>${INST_SUBJECTS_CONFIG[key].name}</span>
+                    </a>
+                `).join('');
+            }
+
+            executeBaselineArraySeeding() {
+                const sourceNames = ['Liam Watson', 'Olivia Chen', 'Ethan Vance', 'Sophia Wright', 'Mason Rogers', 'Isabella Martinez', 'Lucas Davies', 'Mia Thomson', 'Oliver Sterling', 'Charlotte Cross', 'Alexander Ross', 'Emma Gallagher', 'Benjamin Howard', 'Ava Patel', 'Daniel Foster'];
+                
+                this.students = sourceNames.map((name, idx) => {
+                    let subMetricsMap = {};
+                    Object.keys(INST_SUBJECTS_CONFIG).forEach(key => {
+                        let baseScore = Math.floor(Math.random() * 36) + 65; 
+                        let baseAtt = Math.floor(Math.random() * 21) + 80;   
+                        subMetricsMap[key] = { score: baseScore, attendance: baseAtt, comment: "Maintains optimal progress parameters inside tracking node." };
+                    });
+
+                    return {
+                        id: 'STU-2026-' + (8410 + idx),
+                        name: name,
+                        subjects: subMetricsMap
+                    };
+                });
+                this.commitStateToStorage();
+            }
+
+            commitStateToStorage() {
+                localStorage.setItem('EDUPULSE_ELITE_DATASTORE', JSON.stringify(this.students));
+            }
+
+            evaluateCalculatedPillIndices(studObj) {
+                let keys = Object.keys(INST_SUBJECTS_CONFIG);
+                let total = 0;
+                keys.forEach(k => total += studObj.subjects[k].score);
+                let avg = total / keys.length;
+                
+                // GPA Model Calculation Matrix
+                let gpa = (avg / 100) * 4.0;
+                
+                let grade = 'F';
+                if (avg >= 90) grade = 'A+';
+                else if (avg >= 80) grade = 'A';
+                else if (avg >= 70) grade = 'B';
+                else if (avg >= 60) grade = 'C';
+
+                return { total: Math.round(total), avg: Math.round(avg), gpa: gpa.toFixed(2), grade: grade };
+            }
+
+            evaluateSystemMetrics() {
+                if (this.students.length === 0) return;
+                
+                document.getElementById('stat-total-students').innerText = this.students.length;
+                
+                let gpaSum = 0;
+                let attSum = 0;
+                let totalSubCount = Object.keys(INST_SUBJECTS_CONFIG).length;
+
+                this.students.forEach(s => {
+                    let indices = this.evaluateCalculatedPillIndices(s);
+                    gpaSum += parseFloat(indices.gpa);
+                    
+                    let localAttTotal = 0;
+                    Object.keys(INST_SUBJECTS_CONFIG).forEach(k => localAttTotal += s.subjects[k].attendance);
+                    attSum += (localAttTotal / totalSubCount);
+                });
+
+                document.getElementById('stat-mean-gpa').innerText = (gpaSum / this.students.length).toFixed(2);
+                document.getElementById('stat-mean-att').innerText = Math.round(attSum / this.students.length) + '%';
+            }
+
+            renderMasterOverviewMetrics() {
+                const targetCardsBox = document.getElementById('dashboard-subject-cards-grid');
+                
+                targetCardsBox.innerHTML = Object.keys(INST_SUBJECTS_CONFIG).map(key => {
+                    let cfg = INST_SUBJECTS_CONFIG[key];
+                    let totalScore = 0;
+                    this.students.forEach(s => totalScore += s.subjects[key].score);
+                    let avgScore = Math.round(totalScore / this.students.length);
+
+                    return `
+                        <div class="dynamic-sub-card" onclick="appController.routePanel('subject', '${key}')" style="border-left: 4px solid ${cfg.color}">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                                <h4 style="font-weight:700; font-size:1.1rem;">${cfg.name}</h4>
+                                <i class="fa ${cfg.icon}" style="color:${cfg.color}; font-size:1.2rem;"></i>
+                            </div>
+                            <p style="font-size:0.8rem; color:var(--text-sub);">Mean Grade Level Run-Rate</p>
+                            <h3 style="font-size:1.5rem; margin-top:0.25rem; color:${cfg.color}">${avgScore}%</h3>
+                            <div style="margin-top:1rem; font-size:0.75rem; color:var(--text-sub); display:flex; justify-content:space-between;">
+                                <span>${cfg.teacher}</span>
+                                <span style="font-weight:700; text-transform:uppercase;">Inspect Console <i class="fa fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                this.renderGlobalChartProjection();
+            }
+
+            renderMasterTableRows(dataset) {
+                const tbody = document.getElementById('master-student-table-body');
+                if (dataset.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:var(--text-sub);">Zero system elements returned on current search constraints.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = dataset.map(s => {
+                    let indices = this.evaluateCalculatedPillIndices(s);
+                    return `
+                        <tr>
+                            <td><strong>${s.name}</strong><br><small style="color:var(--text-sub); font-family:'Orbitron',sans-serif;">${s.id}</small></td>
+                            <td><input type="number" class="flex-input-pill" value="${s.subjects.math.score}" onchange="appController.directPushCellEdit('${s.id}','math',this.value)"></td>
+                            <td><input type="number" class="flex-input-pill" value="${s.subjects.phys.score}" onchange="appController.directPushCellEdit('${s.id}','phys',this.value)"></td>
+                            <td><input type="number" class="flex-input-pill" value="${s.subjects.chem.score}" onchange="appController.directPushCellEdit('${s.id}','chem',this.value)"></td>
+                            <td><input type="number" class="flex-input-pill" value="${s.subjects.biol.score}" onchange="appController.directPushCellEdit('${s.id}','biol',this.value)"></td>
+                            <td><input type="number" class="flex-input-pill" value="${s.subjects.cs.score}" onchange="appController.directPushCellEdit('${s.id}','cs',this.value)"></td>
+                            <td><input type="number" class="flex-input-pill" value="${s.subjects.engl.score}" onchange="appController.directPushCellEdit('${s.id}','engl',this.value)"></td>
+                            <td><strong style="color:var(--primary);">${indices.total}</strong></td>
+                            <td><b>${indices.avg}%</b></td>
+                            <td><code style="font-weight:700;">${indices.gpa}</code></td>
+                            <td><span class="status-badge ${indices.avg >= 60 ? 'badge-pass' : 'badge-fail'}">${indices.grade}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            directPushCellEdit(studentId, subjectKey, value) {
+                let cleanVal = Math.min(100, Math.max(0, parseInt(value) || 0));
+                let target = this.students.find(s => s.id === studentId);
+                if (target) {
+                    target.subjects[subjectKey].score = cleanVal;
+                    this.commitStateToStorage();
+                    this.evaluateSystemMetrics();
+                    if(this.activePanelId === 'overview') this.renderMasterOverviewMetrics();
+                }
+            }
+
+            runTableSearch(query) {
+                let cleanQ = query.toLowerCase().trim();
+                let filtered = this.students.filter(s => s.name.toLowerCase().includes(cleanQ) || s.id.toLowerCase().includes(cleanQ));
+                this.renderMasterTableRows(filtered);
+            }
+
+            routePanel(panelId, subKey = '') {
+                this.activePanelId = panelId;
+                document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active'));
+
+                if (panelId === 'overview') {
+                    document.getElementById('view-overview').classList.add('active');
+                    document.getElementById('lnk-ov').classList.add('active');
+                    document.getElementById('header-context-title').innerText = "Administrative Dashboard Overview";
+                    document.getElementById('header-context-desc').innerText = "Realtime institutional data modeling array stream.";
+                    this.renderMasterOverviewMetrics();
+                } else if (panelId === 'database') {
+                    document.getElementById('view-database').classList.add('active');
+                    document.getElementById('lnk-db').classList.add('active');
+                    document.getElementById('header-context-title').innerText = "Student Core Registry Index";
+                    document.getElementById('header-context-desc').innerText = "Granular programmatic student modification grid.";
+                    this.renderMasterTableRows(this.students);
+                } else if (panelId === 'subject') {
+                    this.activeSubjectKey = subKey;
+                    document.getElementById('view-subject-isolate').classList.add('active');
+                    document.getElementById(`lnk-sub-${subKey}`).classList.add('active');
+                    
+                    let cfg = INST_SUBJECTS_CONFIG[subKey];
+                    document.getElementById('header-context-title').innerText = `${cfg.name} Academic Management Console`;
+                    document.getElementById('header-context-desc').innerText = `Isolated subsystem tracking architecture for ${cfg.name}.`;
+                    this.renderIsolatedSubjectDashboard();
+                }
+            }
+
+            renderIsolatedSubjectDashboard() {
+                const key = this.activeSubjectKey;
+                const cfg = INST_SUBJECTS_CONFIG[key];
+
+                document.getElementById('sub-hero-title').innerText = cfg.name;
+                document.getElementById('sub-hero-instructor').innerText = `Lead Faculty Officer: ${cfg.teacher}`;
+                document.getElementById('sub-hero-icon-box').style.background = cfg.color;
+                document.getElementById('sub-hero-icon-box').innerHTML = `<i class="fa ${cfg.icon}"></i>`;
+
+                // Calculate Metric Parameters
+                let scoreSum = 0;
+                let attSum = 0;
+                let passCount = 0;
+                let failCount = 0;
+
+                this.students.forEach(s => {
+                    let node = s.subjects[key];
+                    scoreSum += node.score;
+                    attSum += node.attendance;
+                    if(node.score >= 60) passCount++; else failCount++;
+                });
+
+                let meanScore = Math.round(scoreSum / this.students.length);
+                let meanAtt = Math.round(attSum / this.students.length);
+
+                document.getElementById('sub-metric-att').innerText = meanAtt + '%';
+                document.getElementById('sub-metric-marks').innerText = meanScore + '%';
+                document.getElementById('sub-metric-passfail').innerText = `${passCount} P / ${failCount} F`;
+                
+                // Predictive Vector Simulation Engine Model
+                let prediction = "Stable Profile Vector";
+                if(meanScore > 80) prediction = "Optimal Evolution (+3.2% Projection)";
+                else if(meanScore < 65) prediction = "Critical Remedial Intervention Flagged";
+                document.getElementById('sub-metric-predict').innerText = prediction;
+
+                // Load Toppers Array List
+                let sortedToppers = [...this.students].sort((a,b) => b.subjects[key].score - a.subjects[key].score).slice(0, 3);
+                document.getElementById('sub-toppers-list-box').innerHTML = sortedToppers.map((t, idx) => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:0.65rem 1rem; background:var(--glass-card); border-radius:12px; border-left: 3px solid var(--warning);">
+                        <span style="font-size:0.85rem;"><strong>#${idx+1}</strong> ${t.name}</span>
+                        <strong style="color:var(--warning);">${t.subjects[key].score}%</strong>
+                    </div>
+                `).join('');
+
+                // Load Static Arrays For Assignments & Resources
+                document.getElementById('sub-homework-container').innerHTML = cfg.homework.map(h => `
+                    <div style="padding:0.75rem 1rem; background:rgba(0,0,0,0.1); border:1px solid var(--border-ray); border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+                        <div><h5 style="font-size:0.85rem;">${h.title}</h5><p style="font-size:0.75rem; color:var(--text-sub);">Target Baseline Parameters</p></div>
+                        <span class="status-badge badge-fail" style="font-size:0.7rem;">${h.due}</span>
+                    </div>
+                `).join('');
+
+                document.getElementById('sub-resources-container').innerHTML = cfg.resources.map(r => `
+                    <div style="padding:0.65rem 1rem; background:rgba(0,0,0,0.1); border:1px solid var(--border-ray); border-radius:12px; font-size:0.85rem; display:flex; align-items:center; gap:0.75rem;">
+                        <i class="fa fa-file-lines" style="color:var(--primary);"></i><span>${r}</span>
+                    </div>
+                `).join('');
+
+                // Render Subject Modifier Grid Rows Matrix
+                this.renderSubjectIsolatedEditorGrid();
+                this.renderIsolatedSubjectPerformanceChart();
+            }
+
+            renderSubjectIsolatedEditorGrid() {
+                const key = this.activeSubjectKey;
+                const tbody = document.getElementById('subject-isolated-editor-tbody');
+
+                tbody.innerHTML = this.students.map(s => {
+                    let node = s.subjects[key];
+                    return `
+                        <tr>
+                            <td><strong>${s.name}</strong><br><small style="color:var(--text-sub);">${s.id}</small></td>
+                            <td><input type="number" class="flex-input-pill" value="${node.score}" onchange="appController.saveDirectIsolatedField('${s.id}','score',this.value)"></td>
+                            <td>
+                                <div class="progress-rail"><div class="progress-track-fill" id="progress-att-bar-${s.id}" style="width:${node.attendance}%;"></div></div>
+                                <input type="number" class="flex-input-pill" value="${node.attendance}" style="width:55px; padding:0.25rem;" onchange="appController.saveDirectIsolatedField('${s.id}','attendance',this.value)">
+                            </td>
+                            <td><input type="text" class="ui-text-input" value="${node.comment}" style="width:100%; font-size:0.8rem; padding:0.4rem 0.75rem;" onchange="appController.saveDirectIsolatedField('${s.id}','comment',this.value)"></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            saveDirectIsolatedField(studentId, fieldType, rawValue) {
+                const key = this.activeSubjectKey;
+                let student = this.students.find(s => s.id === studentId);
+                if (student) {
+                    if (fieldType === 'comment') {
+                        student.subjects[key].comment = rawValue;
+                    } else {
+                        let parsed = Math.min(100, Math.max(0, parseInt(rawValue) || 0));
+                        student.subjects[key][fieldType] = parsed;
+                        if(fieldType === 'attendance') {
+                            const bar = document.getElementById(`progress-att-bar-${studentId}`);
+                            if(bar) bar.style.width = parsed + '%';
+                        }
+                    }
+                    this.commitStateToStorage();
+                    this.evaluateSystemMetrics();
+                    
+                    // Live calculation updates for metrics modules
+                    let scoreSum = 0; let attSum = 0; let passCount = 0; let failCount = 0;
+                    this.students.forEach(st => {
+                        let n = st.subjects[key];
+                        scoreSum += n.score; attSum += n.attendance;
+                        if(n.score >= 60) passCount++; else failCount++;
+                    });
+                    document.getElementById('sub-metric-marks').innerText = Math.round(scoreSum / this.students.length) + '%';
+                    document.getElementById('sub-metric-att').innerText = Math.round(attSum / this.students.length) + '%';
+                    document.getElementById('sub-metric-passfail').innerText = `${passCount} P / ${failCount} F`;
+                    
+                    if(this.subjectIsolatedChart) {
+                        this.subjectIsolatedChart.data.datasets[0].data = this.students.map(st => st.subjects[key].score);
+                        this.subjectIsolatedChart.update();
+                    }
+                }
+            }
+
+            printActiveSubjectReport() {
+                const key = this.activeSubjectKey;
+                const cfg = INST_SUBJECTS_CONFIG[key];
+                
+                let reportString = `==================================================\n`;
+                reportString += `   EDUPULSE PRO ERM SYSTEM SYSTEM MANIFEST REPORT  \n`;
+                reportString += `==================================================\n`;
+                reportString += `SUBJECT SECTOR: ${cfg.name.toUpperCase()}\n`;
+                reportString += `INSTRUCTOR LINE EVALUATOR: ${cfg.teacher.toUpperCase()}\n`;
+                reportString += `METRICS TIMESTAMP SUMMARY: ${new Date().toISOString()}\n\n`;
+                reportString += `STUDENT REGISTRY PROFILES PERFORMANCE ANALYSIS:\n`;
+                reportString += `--------------------------------------------------\n`;
+                
+                this.students.forEach(s => {
+                    let node = s.subjects[key];
+                    reportString += `[${s.id}] ${s.name.padEnd(22)} | Score: ${node.score}% | Attendance: ${node.attendance}% \n`;
+                    reportString += `   Remarks: "${node.comment}"\n`;
+                });
+                
+                reportString += `\n==================================================\n`;
+                reportString += `             END ARCHIVAL LOG REPLICATION         \n`;
+                reportString += `==================================================\n`;
+
+                const blob = new Blob([reportString], { type: "text/plain;charset=utf-8" });
+                const downloadLink = document.createElement("a");
+                downloadLink.setAttribute("href", URL.createObjectURL(blob));
+                downloadLink.setAttribute("download", `ReportCard_SystemManifest_${key}_2026.txt`);
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            }
+
+            resetDatabaseMapping() {
+                if (confirm('Execute irreversible data mutation to baseline settings? All local overrides will clear.')) {
+                    localStorage.removeItem('EDUPULSE_ELITE_DATASTORE');
+                    this.executeBaselineArraySeeding();
+                    this.evaluateSystemMetrics();
+                    this.routePanel(this.activePanelId, this.activeSubjectKey);
+                }
+            }
+
+            invertTheme() {
+                const current = document.documentElement.getAttribute('data-theme');
+                document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+            }
+
+            renderGlobalChartProjection() {
+                const ctx = document.getElementById('chart-overall-comparison').getContext('2d');
+                if (this.globalOverallChart) this.globalOverallChart.destroy();
+
+                let subLabels = Object.keys(INST_SUBJECTS_CONFIG).map(k => INST_SUBJECTS_CONFIG[k].name);
+                let subMeans = Object.keys(INST_SUBJECTS_CONFIG).map(key => {
+                    let sum = 0;
+                    this.students.forEach(s => sum += s.subjects[key].score);
+                    return Math.round(sum / this.students.length);
+                });
+
+                this.globalOverallChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: subLabels,
+                        datasets: [{
+                            label: 'Institutional Subject Performance Mean (%)',
+                            data: subMeans,
+                            backgroundColor: 'rgba(56, 189, 248, 0.45)',
+                            borderColor: '#38bdf8',
+                            borderWidth: 2,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            renderIsolatedSubjectPerformanceChart() {
+                const key = this.activeSubjectKey;
+                const cfg = INST_SUBJECTS_CONFIG[key];
+                const ctx = document.getElementById('chart-subject-isolated').getContext('2d');
+                
+                if (this.subjectIsolatedChart) this.subjectIsolatedChart.destroy();
+
+                this.subjectIsolatedChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: this.students.map(s => s.name),
+                        datasets: [{
+                            label: `${cfg.name} Score Matrix Curve`,
+                            data: this.students.map(s => s.subjects[key].score),
+                            borderColor: cfg.color,
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            borderWidth: 3,
+                            tension: 0.35,
+                            pointBackgroundColor: cfg.color
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        }
+
+        const appController = new EduPulseSystemEngine();
+    </script>
+</body>
+</html>
